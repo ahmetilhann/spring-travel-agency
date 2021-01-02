@@ -1,14 +1,19 @@
 package ahmet.ilhann.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
+import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 
 @EnableWebMvc
 @Configuration
@@ -19,13 +24,28 @@ public class WebConfig implements WebMvcConfigurer {
 
     private static final String RESOLVER_SUFFIX = ".html";
 
+    @Autowired
+    private WebApplicationContext context;
+
     @Bean
-    public ViewResolver viewResolver() {
+    public ServletContextTemplateResolver templateResolver() {
+        ServletContextTemplateResolver resolver = new ServletContextTemplateResolver(context.getServletContext());
+        resolver.setPrefix(RESOLVER_PREFIX);
+        resolver.setSuffix(RESOLVER_SUFFIX);
+        return resolver;
+    }
 
-        UrlBasedViewResolver viewResolver = new InternalResourceViewResolver();
-        viewResolver.setPrefix(RESOLVER_PREFIX);
-        viewResolver.setSuffix(RESOLVER_SUFFIX);
+    @Bean
+    public SpringTemplateEngine templateEngine() {
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver());
+        return templateEngine;
+    }
 
+    @Bean
+    public ThymeleafViewResolver thymeleafViewResolver() {
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setTemplateEngine(templateEngine());
         return viewResolver;
     }
 
